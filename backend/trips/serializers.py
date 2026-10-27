@@ -1,47 +1,62 @@
 from rest_framework import serializers
+from .models import Trip
 
-class TripRequestSerializer(serializers.Serializer):
-    mode = serializers.ChoiceField(
-        choices=["fixed", "discover"]
-    )
-    origin = serializers.CharField(max_length=200)
 
-    destination = serializers.CharField(
-        max_length=200,
-        required=False,
-        allow_blank=True,
-        default="",
-    )
-
-    start_date = serializers.DateField()
-    end_date = serializers.DateField()
-
-    travellers = serializers.IntegerField(min_value=1)
-    budget = serializers.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        min_value=0,
-    )
-
-    currency = serializers.ChoiceField(
-        choices=["INR"],
-        default="INR",
-    )
-
-    preferences = serializers.DictField(
-        required=False,
-        default=dict,
-    )
+class TripSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Trip
+        fields = [
+            "id",
+            "mode",
+            "origin",
+            "destination",
+            "start_date",
+            "end_date",
+            "travellers",
+            "budget",
+            "currency",
+            "preferences",
+            "transport",
+            "must_visit",
+            "constraints",
+            "status",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "status",
+            "created_at",
+            "updated_at",
+        ]
 
     def validate(self, attrs):
-        if attrs["end_date"] < attrs["start_date"]:
-            raise serializers.ValidationError(
-                {"end_date": "End date must be on or after start date."}
-            )
+        start = attrs.get(
+            "start_date",
+            getattr(self.instance, "start_date", None),
+        )
+        end = attrs.get(
+            "end_date",
+            getattr(self.instance, "end_date", None),
+        )
 
-        if attrs["mode"] == "fixed" and not attrs.get("destination"):
-            raise serializers.ValidationError(
-                {"destination": "Required for fixed-destination trips."}
-            )
+        if start and end and end < start:
+            raise serializers.ValidationError({
+                "end_date": "End date must be on or after start date."
+            })
+
+        mode = attrs.get(
+            "mode",
+            getattr(self.instance, "mode", None),
+        )
+        destination = attrs.get(
+            "destination",
+            getattr(self.instance, "destination", ""),
+        )
+
+        if mode == Trip.Mode.FIXED and not destination.strip():
+            raise serializers.ValidationError({
+                "destination": "Required for fixed-destination trips."
+            })
 
         return attrs

@@ -1,6 +1,7 @@
 from django.urls import path
-from .views import TripPreviewView
+from .views import TripCreateView, TripDetailView
 
 urlpatterns = [
-    path("preview/", TripPreviewView.as_view(), name="trip-preview"),
+    path("", TripCreateView.as_view(), name="trip-create"),
+    path("<int:pk>/", TripDetailView.as_view(), name="trip-detail"),
 ]
