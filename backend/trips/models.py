@@ -31,6 +31,10 @@ class Trip(models.Model):
     must_visit = models.JSONField(default=list, blank=True)
     constraints = models.JSONField(default=dict, blank=True)
 
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
+    timezone = models.CharField(max_length=50, blank=True)
+
     status = models.CharField(
         max_length=12,
         choices=Status.choices,
